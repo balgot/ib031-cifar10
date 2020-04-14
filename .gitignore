@@ -130,3 +130,6 @@ dmypy.json
 
 # vim swap file
 *.swp
+
+# cifar images
+cifar-10-batches-py/
