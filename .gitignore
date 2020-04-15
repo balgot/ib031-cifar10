@@ -133,3 +133,6 @@ dmypy.json
 
 # ignore datasets
 dataset/
+
+# ignore idea/ files
+.idea/
