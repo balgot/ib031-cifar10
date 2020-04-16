@@ -3,7 +3,7 @@ import pickle
 """
 Default path to untared image data
 """
-CIFAR_PATH = '../cifar-10-batches-py'
+CIFAR_PATH = '../data'
 
 """
 Loaded in this way, each of the batch files contains a dictionary with the
