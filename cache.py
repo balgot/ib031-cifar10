@@ -1,7 +1,27 @@
 import pickle
-import json
 import os
 from typing import Callable, Dict, Tuple
+
+
+def _hash(obj) -> int:
+    """
+    Computes hash of obj. For ints,
+    it does not compute hash, rather it
+    returns their value
+
+    :param obj: object to be hashed
+    :return: hash
+    """
+    try:
+        from collections.abc import Hashable
+    except ImportError:
+        from collections import Hashable
+
+    if isinstance(obj, int):
+        return obj
+    if isinstance(obj, Hashable):
+        return hash(obj)
+    return hash(str(obj))
 
 
 def _create_name(func: Callable, args: Tuple, kwargs: Dict) -> str:
@@ -16,10 +36,11 @@ def _create_name(func: Callable, args: Tuple, kwargs: Dict) -> str:
     """
     name = f"F={func.__name__}__ARGS="
     for arg in args:
-        name += f"{arg}_"
+        name += f"{_hash(arg)}_"
     name += "_KWARGS="
-    for key, val in kwargs.items():
-        name += f"{key}-{val}_"
+    for key in sorted(kwargs.keys()):
+        val = kwargs[key]
+        name += f"{key}-{_hash(val)}_"
     name += ".cache"
     return name
 
@@ -158,3 +179,14 @@ if __name__ == "__main__":
     print(f"Content of {CACHE_DIR}:")
     for filename in os.listdir(CACHE_DIR):
         print(f"=> {filename}")
+    print()
+
+    ###########################################
+    # demonstration of file names
+    long_array = list(range(1000))
+    @cache
+    def f(arg1, arg2, arg3):
+        return 0
+
+    f(long_array, [1, 2, 3], arg3=long_array)
+    f(long_array, arg2=[1, 2, 3], arg3=long_array)
