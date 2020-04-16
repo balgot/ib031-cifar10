@@ -130,3 +130,12 @@ dmypy.json
 
 # vim swap file
 *.swp
+
+# ignore datasets
+dataset/
+
+# ignore idea/ files
+.idea/
+
+# ignore cache files
+*cache*/
