@@ -136,3 +136,6 @@ dataset/
 
 # ignore idea/ files
 .idea/
+
+# ignore cache files
+*cache*/
