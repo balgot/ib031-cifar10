@@ -3,14 +3,16 @@ import os
 from typing import Callable, Dict, Tuple
 
 
-def _hash(obj) -> int:
+def _hash(obj) -> str:
     """
     Computes hash of obj. For ints,
     it does not compute hash, rather it
-    returns their value
+    returns their value. For non-hashable types,
+    returns hash of their string representation
+    and append 'S' to indicate this
 
     :param obj: object to be hashed
-    :return: hash
+    :return: hash in hex representation
     """
     try:
         from collections.abc import Hashable
@@ -18,10 +20,10 @@ def _hash(obj) -> int:
         from collections import Hashable
 
     if isinstance(obj, int):
-        return obj
+        return str(obj)
     if isinstance(obj, Hashable):
-        return hash(obj)
-    return hash(str(obj))
+        return hex(hash(obj))
+    return hex(hash(str(obj))) + "S"
 
 
 def _create_name(func: Callable, args: Tuple, kwargs: Dict) -> str:
