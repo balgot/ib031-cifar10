@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import seaborn as sns
 import numpy as np
 import utils
 
@@ -23,20 +24,22 @@ if __name__ == '__main__':
     Find average image and plot histogram of RGB values for each category
     """
 
-    fig, axs = plt.subplots(4, 10, figsize=(15, 10))
+    fig, axs = plt.subplots(4, 5, figsize=(15, 10))
+    hist_kws = { 'range' : (50, 200) }
 
     for i in range(10):
         imgs = imgs_of_cat(batch, i)
-        avg_img = np.sum(imgs, axis=0) / imgs.shape[0]
+        avg_img = np.mean(imgs, axis=0)
         R, G, B = avg_img[:1024], avg_img[1024:2048], avg_img[2048:]
+        x, y = i % 5, (i // 5) * 2
 
-        axs[0][i].imshow(img_for_show(avg_img.astype('int')))
-        axs[0][i].set_title(meta[b'label_names'][i])
-        axs[0][i].get_yaxis().set_visible(False)
-        axs[0][i].get_xaxis().set_visible(False)
-        axs[1][i].hist(R, bins=50, range=(0, 255), color='red')
-        axs[2][i].hist(G, bins=50, range=(0, 255), color='green')
-        axs[3][i].hist(B, bins=50, range=(0, 255), color='blue')
+        axs[y][x].imshow(img_for_show(avg_img.astype('int')))
+        axs[y][x].set_title(meta[b'label_names'][i])
+        axs[y][x].get_yaxis().set_visible(False)
+        axs[y][x].get_xaxis().set_visible(False)
+        sns.distplot(R, hist_kws=hist_kws, color='red',   ax=axs[y + 1][x])
+        sns.distplot(G, hist_kws=hist_kws, color='green', ax=axs[y + 1][x])
+        sns.distplot(B, hist_kws=hist_kws, color='blue',  ax=axs[y + 1][x])
 
 
     plt.show()
