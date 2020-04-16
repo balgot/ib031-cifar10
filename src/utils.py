@@ -1,7 +1,6 @@
 import pickle
 
-"""
-Default path to untared image data
+""" Default path to untared image data
 """
 CIFAR_PATH = '../dataset'
 
@@ -36,3 +35,15 @@ def load_data_batch(i, path=CIFAR_PATH):
 
 def load_test_batch(path=CIFAR_PATH):
     return unpickle(path + '/test_batch')
+
+"""
+returns np.array of all images of specific category (e.i. label)
+"""
+def imgs_of_cat(batch, category):
+    return batch[b'data'][np.array(batch[b'labels']) == category]
+
+"""
+creates new image prepared to show from raw data from batch
+"""
+def img_for_show(raw_img):
+    return raw_img.reshape((32, 32, 3), order='F').swapaxes(0, 1)

@@ -3,18 +3,6 @@ import seaborn as sns
 import numpy as np
 import utils
 
-"""
-returns np.array of all images of specific category (e.i. label)
-"""
-def imgs_of_cat(batch, category):
-    return batch[b'data'][np.array(batch[b'labels']) == category]
-
-"""
-creates new image prepared to show from raw data from batch
-"""
-def img_for_show(raw_img):
-    return raw_img.reshape((32, 32, 3), order='F').swapaxes(0, 1)
-
 
 if __name__ == '__main__':
     batch = utils.load_data_batch(1)
