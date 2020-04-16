@@ -48,7 +48,7 @@ def _create_name(func: Callable, args: Tuple, kwargs: Dict) -> str:
 
 
 # Path to directory with cached results
-CACHE_DIR = "cache"
+CACHE_DIR = "../cache"
 
 
 def cache_init() -> None:
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         return a * b
 
     # create test CACHE_DIR
-    CACHE_DIR = "cache_test"
+    CACHE_DIR = "../cache_test"
     cache_init()
 
     # Clear cache

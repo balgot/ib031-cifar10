@@ -56,7 +56,7 @@ if __name__ == '__main__':
     """
     Histogram of RGB values from whole batch. Take all values into account
     instead of making an average image. But because whole dataset is too large,
-    we use only random subsample of size 100 images from each category.
+    we use only random subsample of size 50 images from each category.
     """
 
     fig, axs = plt.subplots(2, 5, figsize=(15, 8))
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     for i in range(10):
         imgs = imgs_of_cat(batch, i)
-        imgs = imgs[np.random.choice(imgs.shape[0], 100)]
+        imgs = imgs[np.random.choice(imgs.shape[0], 50)]
         R = imgs[:,     :1024].reshape(-1)
         G = imgs[:, 1024:2048].reshape(-1)
         B = imgs[:, 2048:    ].reshape(-1)
