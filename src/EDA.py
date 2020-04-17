@@ -13,7 +13,7 @@ if __name__ == '__main__':
     Print dataset size info about each category
     """
     for i in range(10):
-        imgs = imgs_of_cat(batch, i)
+        imgs = utils.imgs_of_cat(batch, i)
         print("Category {}: {}".format(i, labels[i]))
         print("Size: {}".format(imgs.shape[0]))
         print()
@@ -26,12 +26,12 @@ if __name__ == '__main__':
     hist_kws = { 'range' : (50, 200) }
 
     for i in range(10):
-        imgs = imgs_of_cat(batch, i)
+        imgs = utils.imgs_of_cat(batch, i)
         avg_img = np.mean(imgs, axis=0)
         R, G, B = avg_img[:1024], avg_img[1024:2048], avg_img[2048:]
         x, y = i % 5, (i // 5) * 2
 
-        axs[y][x].imshow(img_for_show(avg_img.astype('int')))
+        axs[y][x].imshow(utils.img_for_show(avg_img.astype('int')))
         axs[y][x].set_title(labels[i])
         axs[y][x].get_yaxis().set_visible(False)
         axs[y][x].get_xaxis().set_visible(False)
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     hist_kws = { 'range' : (0, 255) }
 
     for i in range(10):
-        imgs = imgs_of_cat(batch, i)
+        imgs = utils.imgs_of_cat(batch, i)
         imgs = imgs[np.random.choice(imgs.shape[0], 50)]
         R = imgs[:,     :1024].reshape(-1)
         G = imgs[:, 1024:2048].reshape(-1)

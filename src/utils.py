@@ -1,5 +1,3 @@
-import pickle
-
 """ Default path to untared image data
 """
 CIFAR_PATH = '../dataset'
@@ -23,6 +21,7 @@ a Python dictionary object. It has the following entries:
   label_names[0] == "airplane", label_names[1] == "automobile", etc.
 """
 def unpickle(file):
+    import pickle
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
@@ -40,6 +39,7 @@ def load_test_batch(path=CIFAR_PATH):
 returns np.array of all images of specific category (e.i. label)
 """
 def imgs_of_cat(batch, category):
+    import numpy as np
     return batch[b'data'][np.array(batch[b'labels']) == category]
 
 """
