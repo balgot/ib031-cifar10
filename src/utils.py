@@ -1,4 +1,8 @@
-""" Default path to untared image data
+from matplotlib import pyplot as plt
+import numpy as np
+
+"""
+Default path to untared image data
 """
 CIFAR_PATH = '../dataset'
 
@@ -39,7 +43,6 @@ def load_test_batch(path=CIFAR_PATH):
 returns np.array of all images of specific category (e.i. label)
 """
 def imgs_of_cat(batch, category):
-    import numpy as np
     return batch[b'data'][np.array(batch[b'labels']) == category]
 
 """
@@ -47,3 +50,27 @@ creates new image prepared to show from raw data from batch
 """
 def img_for_show(raw_img):
     return raw_img.reshape((32, 32, 3), order='F').swapaxes(0, 1)
+
+
+def plot_random(imgs, labels, nrows=1, ncols=1, fontsize='medium', **kwargs):
+    """
+    Plots random images from batch using matplotlib pyplot.
+    User should typically call pyplot.show() after this function
+
+    :param imgs: images in form 1D array [Rvalue, Gvalues, Bvalues]
+    :param labels: labels (numerical) attached to images
+    :param nrows: number of rows of images
+    :param ncols: number of cols of images
+    :param fontsize: passed to pyplot.Axes.set_title
+    :param **kwargs: passed to pyplot.subplots
+    """
+    fig, axs = plt.subplots(nrows, ncols, **kwargs)
+
+    for ax in axs.reshape(-1):
+        random = np.random.randint(0, imgs.shape[0])
+        img = imgs[random]
+        label = labels[random]
+
+        title = "{}: {}".format(label, load_meta()[b'label_names'][label])
+        ax.imshow(img_for_show(img))
+        ax.set_title(title, fontsize=fontsize)
