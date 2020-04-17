@@ -5,7 +5,6 @@ import utils
 
 if __name__ == '__main__':
     batch = utils.load_data_batch(1)
-    meta = utils.load_meta()
 
     """
     Use just a subset - it is very time consuming and we just want to have
@@ -22,17 +21,26 @@ if __name__ == '__main__':
     """
     imgs = imgs / 255
 
+    """
+    Find outliers using LOF
+    """
+
     LOF = LocalOutlierFactor()
     outliers = np.where(LOF.fit_predict(imgs) == -1)[0]
     print(outliers)
 
+    """
+    Lets see found outliers.
+    """
+
     for i in outliers:
-        plt.imshow(utils.img_for_show(imgs[i]))
-        plt.title(meta[b'label_names'][labels[i]])
+        plt.figure(figsize=(1, 1))
+        utils.plot_raw_img(imgs[i], labels[i], plt.gca())
+        plt.tight_layout()
         plt.show()
 
     """
     We have found out that there are also images with "unnatural" backgrouds.
-    For example clear white background. It can bee seen alsi from EDA.py.
+    For example clear white background. It can bee seen also from EDA.py.
     Some histograms have large bin corresponding to RGB (255, 255, 255).
     """
