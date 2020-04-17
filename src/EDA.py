@@ -1,20 +1,17 @@
 from matplotlib import pyplot as plt
-import seaborn as sns
 import numpy as np
 import utils
 
 
 if __name__ == '__main__':
     batch = utils.load_data_batch(1)
-    meta = utils.load_meta()
-    labels = meta[b'label_names']
 
     """
     Print dataset size info about each category
     """
     for i in range(10):
         imgs = utils.imgs_of_cat(batch, i)
-        print("Category {}: {}".format(i, labels[i]))
+        print("Category {}: {}".format(i, utils.get_lname(i)))
         print("Size: {}".format(imgs.shape[0]))
         print()
 

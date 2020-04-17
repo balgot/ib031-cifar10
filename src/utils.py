@@ -25,7 +25,13 @@ a Python dictionary object. It has the following entries:
   labels in the labels array described above. For example,
   label_names[0] == "airplane", label_names[1] == "automobile", etc.
 """
+
 def unpickle(file):
+    """
+    Loads data from file as is suggested on original cifar website
+    :param file: file to read
+    :return: dict (format specified in global docs)
+    """
     import pickle
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
@@ -47,16 +53,20 @@ def get_lname(label):
     """
     return load_meta()[b'label_names'][label].decode('utf-8')
 
-"""
-returns np.array of all images of specific category (e.i. label)
-"""
 def imgs_of_cat(batch, category):
+    """
+    :param batch: From where to obtain images
+    :param category: Images of what category to obtain
+    :return: np.array of all images of specific category (e.i. label) 
+    """
     return batch[b'data'][np.array(batch[b'labels']) == category]
 
-"""
-creates new image prepared to show from raw data from batch
-"""
 def img_for_show(raw_img):
+    """
+    Creates new image prepared to show from raw data from batch
+    :param raw_img: 1D format of image
+    :return: 3D format (y, x, rgb) ready for pyplot's imshow
+    """
     return raw_img.reshape((32, 32, 3), order='F').swapaxes(0, 1)
 
 def plot_raw_img(raw_img, label, ax, fontsize='medium'):
