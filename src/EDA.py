@@ -28,17 +28,12 @@ if __name__ == '__main__':
     for i in range(10):
         imgs = utils.imgs_of_cat(batch, i)
         avg_img = np.mean(imgs, axis=0)
-        R, G, B = avg_img[:1024], avg_img[1024:2048], avg_img[2048:]
         x, y = i % 5, (i // 5) * 2
 
-        axs[y][x].imshow(utils.img_for_show(avg_img.astype('int')))
-        axs[y][x].set_title(labels[i])
-        axs[y][x].get_yaxis().set_visible(False)
-        axs[y][x].get_xaxis().set_visible(False)
-        sns.distplot(R, hist_kws=hist_kws, color='red',   ax=axs[y + 1][x])
-        sns.distplot(G, hist_kws=hist_kws, color='green', ax=axs[y + 1][x])
-        sns.distplot(B, hist_kws=hist_kws, color='blue',  ax=axs[y + 1][x])
+        utils.plot_raw_img(avg_img.astype('int'), i, axs[y][x])
+        utils.plot_RGB_hist(avg_img, axs[y + 1][x], hist_kws=hist_kws)
 
+    plt.tight_layout()
     plt.show()
 
     """
@@ -48,19 +43,14 @@ if __name__ == '__main__':
     """
 
     fig, axs = plt.subplots(2, 5, figsize=(15, 8))
-    hist_kws = { 'range' : (0, 255) }
 
     for i in range(10):
         imgs = utils.imgs_of_cat(batch, i)
         imgs = imgs[np.random.choice(imgs.shape[0], 50)]
-        R = imgs[:,     :1024].reshape(-1)
-        G = imgs[:, 1024:2048].reshape(-1)
-        B = imgs[:, 2048:    ].reshape(-1)
         x, y = i % 5, i // 5
 
-        axs[y][x].set_title(labels[i])
-        sns.distplot(R, hist_kws=hist_kws, color='red',   ax=axs[y][x])
-        sns.distplot(G, hist_kws=hist_kws, color='green', ax=axs[y][x])
-        sns.distplot(B, hist_kws=hist_kws, color='blue',  ax=axs[y][x])
+        axs[y][x].set_title(utils.get_lname(i))
+        utils.plot_RGB_hist(imgs, axs[y][x])
 
+    plt.tight_layout()
     plt.show()

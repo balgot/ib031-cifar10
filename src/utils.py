@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import seaborn as sns
 import numpy as np
 
 """
@@ -39,6 +40,13 @@ def load_data_batch(i, path=CIFAR_PATH):
 def load_test_batch(path=CIFAR_PATH):
     return unpickle(path + '/test_batch')
 
+def get_lname(label):
+    """
+    :param label: integer image label
+    :return: corresponding string label name
+    """
+    return load_meta()[b'label_names'][label].decode('utf-8')
+
 """
 returns np.array of all images of specific category (e.i. label)
 """
@@ -50,6 +58,34 @@ creates new image prepared to show from raw data from batch
 """
 def img_for_show(raw_img):
     return raw_img.reshape((32, 32, 3), order='F').swapaxes(0, 1)
+
+def plot_raw_img(raw_img, label, ax, fontsize='medium'):
+    """
+    Plots single image on specified ax (see Axes).
+    :param raw_img: format as in batch (1D array [R, G, B])
+    :param label: integer label (None for no title)
+    :param ax: ax to plot on
+    :param fontsize: passed to ax.set_title
+    """
+    ax.imshow(img_for_show(raw_img))
+    if label is not None:
+        ax.set_title(f"{label}: {get_lname(label)}", fontsize=fontsize)
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+
+def plot_RGB_hist(raw_imgs, ax, **kwargs):
+    """
+    Plots histograms of image(s)'s R, G, B amount using seaborn
+    :param raw_imgs: array of images (1D format) or just one such image
+    :param ax: ax on which to plot
+    :param **kwargs: passed to seaborn.distplot
+    """
+    R = raw_imgs.reshape((-1, 3072))[:,     :1024].reshape(-1)
+    G = raw_imgs.reshape((-1, 3072))[:, 1024:2048].reshape(-1)
+    B = raw_imgs.reshape((-1, 3072))[:, 2048:    ].reshape(-1)
+    sns.distplot(R, color='red',   ax=ax, **kwargs)
+    sns.distplot(G, color='green', ax=ax, **kwargs)
+    sns.distplot(B, color='blue',  ax=ax, **kwargs)
 
 
 def plot_random(imgs, labels, nrows=1, ncols=1, fontsize='medium', **kwargs):
@@ -70,7 +106,4 @@ def plot_random(imgs, labels, nrows=1, ncols=1, fontsize='medium', **kwargs):
         random = np.random.randint(0, imgs.shape[0])
         img = imgs[random]
         label = labels[random]
-
-        title = "{}: {}".format(label, load_meta()[b'label_names'][label])
-        ax.imshow(img_for_show(img))
-        ax.set_title(title, fontsize=fontsize)
+        plot_raw_img(img, label, ax, fontsize=fontsize)
