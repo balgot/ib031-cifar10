@@ -4,17 +4,16 @@ import numpy as np
 import utils
 
 if __name__ == '__main__':
-    batch = utils.load_data_batch(1)
-
     """
     Use just a subset - it is very time consuming and we just want to have
     overview of how bad images could be. It is dataset made for learning
     image classification, so there are no "real" outliers. For example
     whole image clear.
     """
+    imgs, labels = utils.read_data_batch(1)
     sample = np.random.choice(10000, 500)
-    imgs = batch[b'data'][sample]
-    labels = np.array(batch[b'labels'])[sample]
+    imgs = imgs[sample]
+    labels = labels[sample]
 
     """
     Scale data. For images it is simple, every pixel is in range 0-255.

@@ -46,12 +46,32 @@ def load_data_batch(i, path=CIFAR_PATH):
 def load_test_batch(path=CIFAR_PATH):
     return unpickle(path + '/test_batch')
 
+def read_data_batch(i, path=CIFAR_PATH):
+    """
+    :return: tuple (imgs, labels) of np.arrays (note: integer labels)
+    """
+    batch = load_data_batch(i, path)
+    return batch[b'data'], np.array(batch[b'labels'])
+
+def read_test_batch(i, path=CIFAR_PATH):
+    """
+    :return: tuple (imgs, labels) of np.arrays (note: integer labels)
+    """
+    batch = load_test_batch(i, path)
+    return batch[b'data'], np.array(batch[b'labels'])
+
+def read_meta(path=CIFAR_PATH):
+    """
+    :return: np.array of label names
+    """
+    return np.array(load_meta(path)[b'label_names'])
+
 def get_lname(label):
     """
     :param label: integer image label
     :return: corresponding string label name
     """
-    return load_meta()[b'label_names'][label].decode('utf-8')
+    return read_meta()[label].decode('utf-8')
 
 def imgs_of_cat(batch, category):
     """
