@@ -2,6 +2,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from matplotlib import pyplot as plt
 import numpy as np
 import utils
+import graphs
 
 if __name__ == '__main__':
     """
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 
     for i in outliers:
         plt.figure(figsize=(1, 1))
-        utils.plot_raw_img(imgs[i], labels[i], plt.gca())
+        graphs.plot_raw_img(imgs[i], labels[i], plt.gca())
         plt.tight_layout()
         plt.show()
 
