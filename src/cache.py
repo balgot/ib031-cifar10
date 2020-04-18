@@ -1,9 +1,9 @@
 import pickle
 import os
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Tuple, Any
 
 
-def _hash(obj) -> str:
+def _hash(obj: Any) -> str:
     """
     Computes hash of obj. For ints,
     it does not compute hash, rather it
@@ -56,9 +56,12 @@ def cache_init() -> None:
     Creates directory with cached results
     :return: None
     """
-    # If the directory does not exists, create it
     if not os.path.isdir(CACHE_DIR):
+        # If the directory does not exists, create it
         os.mkdir(CACHE_DIR)
+    else:
+        # otherwise clear it's content
+        clear_cache()
 
 
 def clear_cache() -> None:
@@ -80,7 +83,7 @@ def clear_cache() -> None:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-def cache(function: Callable):
+def cache(function: Callable) -> Callable:
     """
     cache() serves as a decorator for function which takes
     long time to compute and is likely to be used multiple times.
@@ -104,8 +107,8 @@ def cache(function: Callable):
             print(f"-- Loading result from {cache_path}")
 
             # Open file and return its pickled content
-            with open(cache_path, 'rb') as f:
-                res = pickle.load(f, encoding="bytes")
+            with open(cache_path, 'rb') as cache_file:
+                res = pickle.load(cache_file, encoding="bytes")
             return res
 
         # If file does not exist, calculate the result and store it
