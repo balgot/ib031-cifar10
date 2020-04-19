@@ -73,7 +73,7 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray, nrows: int = 1, ncols: int
         
 def plot_images(imgs: np.ndarray) -> None:
     """
-    Plots all images given, using matplotlib.pyplot in signle row.
+    Plots all images given, using matplotlib.pyplot in single row.
     
     :param imgs: images in form 1D array [Rvalue, Gvalues, Bvalues]
     """
