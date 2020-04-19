@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Dict, Any, Tuple
+import cache
 
 
 # Default path to un-tarred image data
@@ -38,6 +39,7 @@ def unpickle(path: str) -> Dict:
     return data_dict
 
 
+@cache.cache_on_the_fly
 def load_meta(path: str = CIFAR_PATH, filename: str = '/batches.meta') -> Dict:
     """
     Load meta data from pickled file.
