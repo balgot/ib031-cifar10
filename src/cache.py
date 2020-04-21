@@ -136,8 +136,9 @@ def cache_on_the_fly(function: Callable) -> Callable:
     def load_or_run(*args, **kwargs):
         name = _create_name(function, args, kwargs)
         if name not in cached_result:
-            print(f"-- Loading from cache")
             cached_result[name] = function(*args, **kwargs)
+        else:
+            print(f"-- Loading from cache")            
         return cached_result[name]
     return load_or_run
 
