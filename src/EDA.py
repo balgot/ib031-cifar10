@@ -2,31 +2,55 @@ from matplotlib import pyplot as plt
 import numpy as np
 import utils
 import graphs
+import seaborn as sns
 from typing import Dict
 
 
-def plot_avg_imgs(batch: Dict, with_histogram: bool = True) -> None:
+
+def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
+                  with_hsv: bool = False) -> None:
     """
     Plot average image and optionally also histogram of RGB values for each
     category.
 
     :param batch: dictionary with images and labels
     :param with_histogram: whether to plot also histograms
+    :param with_hsv: transform avg image to hsv and plot histogram
     """
-    nrows = 4 if with_histogram else 2
+    import matplotlib.colors as colors
+    d = 0
+    if with_histogram:
+        d += 1
+    if with_hsv:
+        d += 2
+        
+    im = plt.imread("../pics/hue.png")
+    
+    nrows = 2 * (1 + d)
     fig, axs = plt.subplots(nrows, 5, figsize=(15, 10))
     hist_kws = {'range': (50, 200)}
-
+    
     for i in range(10):
         imgs = utils.imgs_of_cat(batch, i)
         avg_img = np.mean(imgs, axis=0)
         x, y = i % 5, i // 5
-        if with_histogram:
-            y *= 2
-
+        y *= (1 + d)
+    
         graphs.plot_raw_img(avg_img.astype('int'), i, axs[y][x])
         if with_histogram:
-            graphs.plot_rgb_hist(avg_img, axs[y + 1][x], hist_kws=hist_kws)
+            y += 1
+            graphs.plot_rgb_hist(avg_img, axs[y][x], hist_kws=hist_kws)
+        if with_hsv:
+            y += 1
+            hsv_avg_img = colors.rgb_to_hsv(graphs.img_for_show(avg_img / 255))
+            sns.distplot(hsv_avg_img[:, :, 0].reshape(-1), color='r',
+                         label='hue', ax=axs[y][x])
+            sns.distplot(hsv_avg_img[:, :, 1].reshape(-1), color='y',
+                         label='saturation', ax=axs[y][x])
+            sns.distplot(hsv_avg_img[:, :, 2].reshape(-1), color='b',
+                         label='value', ax=axs[y][x])
+            y += 1
+            axs[y][x].imshow(im)
 
 
 def plot_global_hist(batch: Dict, sample_size: int = 50) -> None:
