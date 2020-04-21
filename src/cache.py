@@ -124,6 +124,25 @@ def cache(function: Callable) -> Callable:
     return load_or_run
 
 
+def cache_on_the_fly(function: Callable) -> Callable:
+    """
+    Caches the result of function in dictionary.
+
+    :param function: function doing expensive operation
+    :return: cached or first-time computed result of function
+    """
+    cached_result = {}
+
+    def load_or_run(*args, **kwargs):
+        name = _create_name(function, args, kwargs)
+        if name not in cached_result:
+            cached_result[name] = function(*args, **kwargs)
+        else:
+            print(f"-- Loading from cache")            
+        return cached_result[name]
+    return load_or_run
+
+
 # Simple demo
 if __name__ == "__main__":
     from time import sleep, time
@@ -195,3 +214,13 @@ if __name__ == "__main__":
 
     f(long_array, [1, 2, 3], arg3=long_array)
     f(long_array, arg2=[1, 2, 3], arg3=long_array)
+
+    ###########################################
+    # on-fly caching
+    @cache_on_the_fly
+    def g():
+        return [1, 2, 3]
+
+    print(g(), flush=True)
+    print('===================')
+    print(g())
