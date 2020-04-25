@@ -64,6 +64,14 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray,
     :param fontsize: passed to pyplot.Axes.set_title
     :param kwargs: passed to pyplot.subplots
     """
+    if imgs.shape[0] < nrows * ncols:
+        # If there is enough to create a full row, go for it
+        if imgs.shape[0] >= ncols:
+            nrows = np.ceil(imgs.shape[0] / ncols)
+        else:
+            nrows = 1
+            ncols = imgs.shape[0]
+
     fig, axs = plt.subplots(nrows, ncols, **kwargs)
     random = np.random.choice(imgs.shape[0], nrows * ncols, replace=False)
     one_label = (len(labels) == 1)
