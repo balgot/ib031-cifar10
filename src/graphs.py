@@ -67,16 +67,18 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray,
     if imgs.shape[0] < nrows * ncols:
         # If there is enough to create a full row, go for it
         if imgs.shape[0] >= ncols:
-            nrows = np.ceil(imgs.shape[0] / ncols)
+            nrows = int(np.ceil(imgs.shape[0] / ncols))
         else:
             nrows = 1
             ncols = imgs.shape[0]
+    imgs_count = min(nrows * ncols, imgs.shape[0])
 
     fig, axs = plt.subplots(nrows, ncols, **kwargs)
-    random = np.random.choice(imgs.shape[0], nrows * ncols, replace=False)
+    axs_flat = axs.reshape(-1)
+    random = np.random.choice(imgs.shape[0], imgs_count, replace=False)
     one_label = (len(labels) == 1)
 
-    for i, ax in enumerate(axs.reshape(-1)):
+    for i in range(imgs_count):
         img = imgs[random[i]]
         label = labels[random[i]] if not one_label else labels[0]
-        plot_raw_img(img, label, ax, fontsize=fontsize)
+        plot_raw_img(img, label, axs_flat[i], fontsize=fontsize)
