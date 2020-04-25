@@ -1,10 +1,9 @@
 CURRENT_DIR := $(shell pwd)
 SRC_DIR := $(CURRENT_DIR)/src
-TARGETS := test_nb
+TARGETS := test_nb.ipynb
 
-$(TARGETS): % : %.ipynb
 
-%.ipynb: $(SRC_DIR)/%.py
+$(TARGETS): %.ipynb : $(SRC_DIR)/%.py
 	python3 $(SRC_DIR)/py2ipynb.py $< $(CURRENT_DIR)/$@
 
 clean:
