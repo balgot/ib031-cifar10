@@ -48,7 +48,8 @@ def plot_rgb_hist(raw_imgs: np.ndarray, ax, **kwargs) -> None:
     sns.distplot(b, color='blue', ax=ax, **kwargs)
 
 
-def plot_random(imgs: np.ndarray, labels: np.ndarray, nrows: int = 1, ncols: int = 1,
+def plot_random(imgs: np.ndarray, labels: np.ndarray,
+                nrows: int = 1, ncols: int = 1,
                 fontsize: str = 'medium', **kwargs) -> None:
     """
     Plots random images from batch using matplotlib pyplot.
@@ -56,16 +57,28 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray, nrows: int = 1, ncols: int
     Note: Number of plotted images is nrows * ncols.
 
     :param imgs: images in form 1D array [Rvalue, Gvalues, Bvalues]
-    :param labels: labels (numerical) attached to images
+    :param labels: labels (numerical) attached to images. If all labels are the
+                   same, only array of one element can be passed
     :param nrows: number of rows of images
     :param ncols: number of cols of images
     :param fontsize: passed to pyplot.Axes.set_title
     :param kwargs: passed to pyplot.subplots
     """
-    fig, axs = plt.subplots(nrows, ncols, **kwargs)
+    if imgs.shape[0] < nrows * ncols:
+        # If there is enough to create a full row, go for it
+        if imgs.shape[0] >= ncols:
+            nrows = int(np.ceil(imgs.shape[0] / ncols))
+        else:
+            nrows = 1
+            ncols = imgs.shape[0]
+    imgs_count = min(nrows * ncols, imgs.shape[0])
 
-    for ax in axs.reshape(-1):
-        random = np.random.randint(0, imgs.shape[0])
-        img = imgs[random]
-        label = labels[random]
-        plot_raw_img(img, label, ax, fontsize=fontsize)
+    fig, axs = plt.subplots(nrows, ncols, **kwargs)
+    axs_flat = axs.reshape(-1)
+    random = np.random.choice(imgs.shape[0], imgs_count, replace=False)
+    one_label = (len(labels) == 1)
+
+    for i in range(imgs_count):
+        img = imgs[random[i]]
+        label = labels[random[i]] if not one_label else labels[0]
+        plot_raw_img(img, label, axs_flat[i], fontsize=fontsize)
