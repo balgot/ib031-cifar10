@@ -59,9 +59,6 @@ def cache_init() -> None:
     if not os.path.isdir(CACHE_DIR):
         # If the directory does not exists, create it
         os.mkdir(CACHE_DIR)
-    else:
-        # otherwise clear it's content
-        clear_cache()
 
 
 def clear_cache() -> None:
