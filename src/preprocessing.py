@@ -1,6 +1,8 @@
 import numpy as np
 import utils
 from skimage.color import rgb2gray, rgb2hsv
+from skimage.feature import hog
+from skimage import exposure
 import matplotlib.pyplot as plt
 
 
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     sat = hsv[:, :, 1]
     val = hsv[:, :, 2]
 
-    fig, axes = plt.subplots(2, 3, figsize=(8, 4))
+    fig, axes = plt.subplots(3, 3, figsize=(8, 4))
     ax = axes.ravel()
     ax[0].imshow(pic)
     ax[0].set_title("Original")
@@ -69,9 +71,28 @@ if __name__ == "__main__":
     ax[5].imshow(val, cmap='hsv')
     ax[5].set_title("Value")
 
+    # HOG
+    fd, hog_image = hog(pic, orientations=8, pixels_per_cell=(8, 8),
+                        cells_per_block=(1, 1), visualize=True, multichannel=True)
+    ax[6].imshow(hog_image, cmap=plt.cm.gray)
+    ax[6].set_title("Hog")
+
+    # hog detailed
+    _, hog_det = hog(pic, pixels_per_cell=(4, 4), cells_per_block=(1, 1),
+                     visualize=True, multichannel=True)
+    ax[7].imshow(hog_det, cmap=plt.cm.gray)
+    ax[7].set_title("Hog detailed")
+
+    # hog more detailed
+    _, hog_det_ = hog(pic, pixels_per_cell=(2, 2), cells_per_block=(1, 1),
+                     visualize=True, multichannel=True)
+    ax[8].imshow(hog_det_, cmap=plt.cm.gray)
+    ax[8].set_title("Hog more detailed")
+
     print(pic.shape)
     print(gray.shape)
     print(hsv.shape)
+    print(hog_image.shape)
 
     fig.tight_layout()
     plt.show()
