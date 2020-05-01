@@ -3,6 +3,9 @@ import seaborn as sns
 from utils import get_label_name
 import numpy as np
 from typing import Union
+import scipy
+from scipy import ndimage, misc
+import matplotlib.colors as colors
 
 
 def img_for_show(raw_img: np.ndarray) -> np.ndarray:
@@ -82,3 +85,42 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray,
         img = imgs[random[i]]
         label = labels[random[i]] if not one_label else labels[0]
         plot_raw_img(img, label, axs_flat[i], fontsize=fontsize)
+        
+        
+def plot_images(imgs: np.ndarray) -> None:
+    """
+    Plots all images given, using matplotlib.pyplot in single row.
+    
+    :param imgs: images in form 1D array [Rvalue, Gvalues, Bvalues]
+    """
+    width = len(imgs)
+    height = 1
+    
+    fig, axs = plt.subplots(height, width)
+    counter = 0
+    for ax in axs.reshape(-1):
+        plot_raw_img(imgs[counter], label=None, ax=ax)
+        counter += 1
+
+        
+def hue_saturation_histogram(img, ax):
+    # normalise picture
+    img = img_for_show(img)
+    img = img.astype(float) / 255.0
+    
+    # convert ho hsv
+    img_hsv = colors.rgb_to_hsv(img[...,:3])
+    
+    # hue
+    lu1 = img_hsv[..., 0].flatten()
+    ax.hist(lu1 * 360, bins=360, range=(0.0, 360.0), 
+             histtype='stepfilled', color='r', label='Hue')
+    # saturation
+    lu2=img_hsv[..., 1].flatten()
+    ax.hist(lu2, bins=100, range=(0.0, 1.0), 
+             histtype='stepfilled', color='g', label='Saturation')
+   
+    # intensity
+    lu3=img_hsv[..., 2].flatten()
+    ax.hist(lu3 * 255, bins=256, range=(0.0, 255.0),
+             histtype='stepfilled', color='b', label='Intesity')
