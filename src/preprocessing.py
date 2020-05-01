@@ -37,15 +37,28 @@ def rgb_to_hsv(batch: np.ndarray) -> np.ndarray:
     """
     return rgb2hsv(batch)
 
+def brightness_norm(batch: np.ndarray) -> np.ndarray:
+    """
+    Simple brightness normalization. For any array that satisfies
+    shape[-1] == 3, divides vlues by maximum value along this last (-1) axis.
+    :param batch: Usually rgb image/s of shape [?...?, 3]
+    :return: normalized image/s pf the same shape
+    """
+    maxes = batch.max(axis=-1)
+    maxes_stack = np.stack((maxes, maxes, maxes), axis=-1)
+    return np.divide(batch, maxes_stack,
+            out=np.zeros_like(batch, dtype='float32'),
+            where=maxes_stack!=0)
 
-if __name__ == "__main__":
-    X, y = utils.read_data_batch(1)
-    # !NORMALISE
-    X = batch_to_rgb(X) / 255.0
 
+
+def demo(X: np.ndarray, ax: np.ndarray) -> None:
+    """
+    Shows results of varius preprocessing
+    :param X: np.array (shape [.., .., .., 3]) of images in rgb shape
+    :param ax: flattened axis (usually from pyplot.subplots(...)[2])
+    """
     pic = X[1545]
-    fig, axes = plt.subplots(4, 3, figsize=(8, 4))
-    ax = axes.ravel()
 
     ax[0].imshow(pic)
     ax[0].set_title("Original")
@@ -110,7 +123,19 @@ if __name__ == "__main__":
     print(f"Prewitt = {prewitt.shape}")
     print(prewitt)
 
+
+if __name__ == "__main__":
+    X, y = utils.read_data_batch(1)
+    fig, axes = plt.subplots(8, 3, figsize=(8, 8))
+    ax = axes.ravel()
+
+    # !NORMALISE to range <0, 1>
+    X = batch_to_rgb(X) / 255.0
+    demo(X, ax[:3*4])
+
+    print("\nAnd now after brightness normalization\n")
+    X = brightness_norm(X)
+    demo(X, ax[3*4:])
+
     fig.tight_layout()
     plt.show()
-
-
