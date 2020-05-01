@@ -81,11 +81,10 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray,
     random = np.random.choice(imgs.shape[0], imgs_count, replace=False)
     one_label = (len(labels) == 1)
 
-    for ax in axs.reshape(-1):
-        random = np.random.randint(0, imgs.shape[0])
-        img = imgs[random]
-        label = labels[random]
-        plot_raw_img(img, label, ax, fontsize=fontsize)
+    for i in range(imgs_count):
+        img = imgs[random[i]]
+        label = labels[random[i]] if not one_label else labels[0]
+        plot_raw_img(img, label, axs_flat[i], fontsize=fontsize)
         
         
 def plot_images(imgs: np.ndarray) -> None:
@@ -125,4 +124,3 @@ def hue_saturation_histogram(img, ax):
     lu3=img_hsv[..., 2].flatten()
     ax.hist(lu3 * 255, bins=256, range=(0.0, 255.0),
              histtype='stepfilled', color='b', label='Intesity')
-
