@@ -141,4 +141,4 @@ dataset/
 *cache*/
 
 # output notebooks
-/*.ipynb
+src/*.ipynb
