@@ -46,18 +46,20 @@ def rgb_to_hsv(images: np.ndarray) -> np.ndarray:
     return rgb2hsv(images)
 
 
-def brightness_norm(batch: np.ndarray) -> np.ndarray:
+def brightness_norm(images: np.ndarray) -> np.ndarray:
     """
     Simple brightness normalization. For any array that satisfies
     shape[-1] == 3, divides values by maximum value along this last (-1) axis.
 
-    :param batch: Usually rgb image/s of shape [?...?, 3]
+    :param images: Usually rgb image/s of shape [?...?, 3]
     :return: normalized image/s of the same shape
+
+    Time: 3.7s on whole set
     """
-    maxes = batch.max(axis=-1, initial=0)
+    maxes = images.max(axis=-1, initial=0)
     maxes_stack = np.stack((maxes, maxes, maxes), axis=-1)
-    return np.divide(batch, maxes_stack,
-                     out=np.zeros_like(batch, dtype='float32'),
+    return np.divide(images, maxes_stack,
+                     out=np.zeros_like(images, dtype='float32'),
                      where=maxes_stack != 0)
 
 
