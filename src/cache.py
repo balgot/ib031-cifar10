@@ -59,9 +59,6 @@ def cache_init() -> None:
     if not os.path.isdir(CACHE_DIR):
         # If the directory does not exists, create it
         os.mkdir(CACHE_DIR)
-    else:
-        # otherwise clear it's content
-        clear_cache()
 
 
 def clear_cache() -> None:
@@ -121,6 +118,25 @@ def cache(function: Callable) -> Callable:
 
         # Finally return computed things
         return res
+    return load_or_run
+
+
+def cache_on_the_fly(function: Callable) -> Callable:
+    """
+    Caches the result of function in dictionary.
+
+    :param function: function doing expensive operation
+    :return: cached or first-time computed result of function
+    """
+    cached_result = {}
+
+    def load_or_run(*args, **kwargs):
+        name = _create_name(function, args, kwargs)
+        if name not in cached_result:
+            cached_result[name] = function(*args, **kwargs)
+        else:
+            print(f"-- Loading from cache")            
+        return cached_result[name]
     return load_or_run
 
 
@@ -195,3 +211,13 @@ if __name__ == "__main__":
 
     f(long_array, [1, 2, 3], arg3=long_array)
     f(long_array, arg2=[1, 2, 3], arg3=long_array)
+
+    ###########################################
+    # on-fly caching
+    @cache_on_the_fly
+    def g():
+        return [1, 2, 3]
+
+    print(g(), flush=True)
+    print('===================')
+    print(g())

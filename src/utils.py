@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Dict, Any, Tuple
+import cache
 
 
 # Default path to un-tarred image data
@@ -38,6 +39,7 @@ def unpickle(path: str) -> Dict:
     return data_dict
 
 
+@cache.cache_on_the_fly
 def load_meta(path: str = CIFAR_PATH, filename: str = '/batches.meta') -> Dict:
     """
     Load meta data from pickled file.
@@ -82,6 +84,23 @@ def read_data_batch(i: int, path: str = CIFAR_PATH) -> Tuple[Any, np.ndarray]:
     """
     batch = load_data_batch(i, path)
     return batch[b'data'], np.array(batch[b'labels'])
+
+
+def read_dataset(path: str = CIFAR_PATH) -> Tuple[Any, np.ndarray]:
+    """
+    Load and process (concatenate) all data-batch files.
+
+    :param path: path to folder with file
+    :return: tuple (imgs, labels) of np.arrays (note: integer labels)
+    """
+    all_images, all_labels = [], []
+    for i in range(1, 6):
+        imgs, labels = read_data_batch(i)
+        all_images.append(imgs)
+        all_labels.append(labels)
+    all_images = np.concatenate(all_images, axis=0)
+    all_labels = np.concatenate(all_labels, axis=0)
+    return all_images, all_labels
 
 
 def read_test_batch(path: str = CIFAR_PATH) -> Tuple[Any, np.ndarray]:

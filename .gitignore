@@ -139,3 +139,6 @@ dataset/
 
 # ignore cache files
 *cache*/
+
+# output notebooks
+src/*.ipynb
