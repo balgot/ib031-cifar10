@@ -54,7 +54,7 @@ def brightness_norm(batch: np.ndarray) -> np.ndarray:
     :param batch: Usually rgb image/s of shape [?...?, 3]
     :return: normalized image/s of the same shape
     """
-    maxes = batch.max(axis=-1)
+    maxes = batch.max(axis=-1, initial=0)
     maxes_stack = np.stack((maxes, maxes, maxes), axis=-1)
     return np.divide(batch, maxes_stack,
                      out=np.zeros_like(batch, dtype='float32'),
@@ -63,7 +63,8 @@ def brightness_norm(batch: np.ndarray) -> np.ndarray:
 
 def demo(X: np.ndarray, ax: np.ndarray) -> None:
     """
-    Shows results of varius preprocessing
+    Shows results of various preprocessing methods.
+
     :param X: np.array (shape [.., .., .., 3]) of images in rgb shape
     :param ax: flattened axis (usually from pyplot.subplots(...)[2])
     """
@@ -104,7 +105,7 @@ def demo(X: np.ndarray, ax: np.ndarray) -> None:
 
     # hog detailed
     fd_det, hog_det = hog(pic, pixels_per_cell=(4, 4), cells_per_block=(1, 1),
-                     visualize=True, multichannel=True)
+                          visualize=True, multichannel=True)
     ax[7].imshow(hog_det, cmap=plt.cm.gray)
     ax[7].set_title("Hog detailed")
     # print(fd_det.shape)  # 576 = (32 * 32) / (4 * 4) * orientations[=9]
