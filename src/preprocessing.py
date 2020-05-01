@@ -6,59 +6,59 @@ from skimage import filters
 import matplotlib.pyplot as plt
 
 
-def batch_to_rgb(batch: np.ndarray) -> np.ndarray:
+def batch_to_rgb(images: np.ndarray) -> np.ndarray:
     """
     Given loaded images from CIFAR-10 dataset (i.e. 32x32 values
     of red, then green and blue), returns same set of images with
-    color channel being the last, i.e. batch_to_rgb[n][x][y] returns
+    color channel being the last, i.e. batch_to_rgb[n][y][x] returns
     3-value array with r, g, b of pixel (x, y) of n-th image.
 
-    :param batch: CIFAR-images in default format
+    :param images: CIFAR-images in default format
     :return: same images with transformed colors to rgb
 
     Time: 0.0s on whole set
     """
-    return batch.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    return images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
 
 
-def rgb_to_gray(batch: np.ndarray) -> np.ndarray:
+def rgb_to_gray(images: np.ndarray) -> np.ndarray:
     """
     Converts rgb images to gray scale.
-    :param batch: rgb images of shape [.., .., .., 3]
+    :param images: rgb images of shape [.., .., .., 3]
     :return: array with channel dimension removed
 
     Time: 1.081s on whole set (commented 1.8s)
     """
-    # return np.dot(batch[...,:3], [0.2125, 0.7154, 0.0721])
-    return rgb2gray(batch)
+    # return np.dot(images[...,:3], [0.2125, 0.7154, 0.0721])
+    return rgb2gray(images)
 
 
-def rgb_to_hsv(batch: np.ndarray) -> np.ndarray:
+def rgb_to_hsv(images: np.ndarray) -> np.ndarray:
     """
     Converts rgb images to HSV color space.
-    :param batch: rgb images of shape [?, .., .., 3]
+    :param images: rgb images of shape [?, .., .., 3]
     :return: array of images in HSV, each with shape [?, .., .., 3]
 
     Time: 0.0s on whole set
     """
-    if len(batch.shape) == 4:
-        return np.array(map(rgb2hsv, batch))
-    return rgb2hsv(batch)
+    if len(images.shape) == 4:
+        return np.array(map(rgb2hsv, images))
+    return rgb2hsv(images)
 
 
 def brightness_norm(batch: np.ndarray) -> np.ndarray:
     """
     Simple brightness normalization. For any array that satisfies
-    shape[-1] == 3, divides vlues by maximum value along this last (-1) axis.
+    shape[-1] == 3, divides values by maximum value along this last (-1) axis.
+
     :param batch: Usually rgb image/s of shape [?...?, 3]
-    :return: normalized image/s pf the same shape
+    :return: normalized image/s of the same shape
     """
     maxes = batch.max(axis=-1)
     maxes_stack = np.stack((maxes, maxes, maxes), axis=-1)
     return np.divide(batch, maxes_stack,
-            out=np.zeros_like(batch, dtype='float32'),
-            where=maxes_stack!=0)
-
+                     out=np.zeros_like(batch, dtype='float32'),
+                     where=maxes_stack != 0)
 
 
 def demo(X: np.ndarray, ax: np.ndarray) -> None:
