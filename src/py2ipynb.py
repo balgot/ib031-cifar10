@@ -28,7 +28,7 @@ if __name__ == '__main__':
               'extension is added.')
         exit(1)
 
-    with open(sys.argv[1], 'r') as fin:
+    with open(sys.argv[1], 'r', encoding='utf-8') as fin:
         cell_type = None
         cell_buffer = ''
 

@@ -80,7 +80,7 @@ def clear_cache() -> None:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-def cache(function: Callable) -> Callable:
+def cache(function: Callable, verbose: bool = False) -> Callable:
     """
     cache() serves as a decorator for function which takes
     long time to compute and is likely to be used multiple times.
@@ -89,6 +89,7 @@ def cache(function: Callable) -> Callable:
     in loading the result from FS.
 
     :param function: function that takes long time to compute
+    :param verbose: print info whether cached or not
     :return: cached or first-time computed result of function
 
     Note: it must be possible to pickle.dump() the result
@@ -101,7 +102,8 @@ def cache(function: Callable) -> Callable:
 
         # If the file exists, the result is there
         if os.path.exists(cache_path):
-            print(f"-- Loading result from {cache_path}")
+            if verbose:
+                print(f"-- Loading result from {cache_path}")
 
             # Open file and return its pickled content
             with open(cache_path, 'rb') as cache_file:
@@ -113,7 +115,8 @@ def cache(function: Callable) -> Callable:
 
         # Write the result to disk
         with open(cache_path, 'wb') as f:
-            print(f"-- Saving result to {cache_path}")
+            if verbose:
+                print(f"-- Saving result to {cache_path}")
             pickle.dump(res, f)
 
         # Finally return computed things
@@ -121,11 +124,12 @@ def cache(function: Callable) -> Callable:
     return load_or_run
 
 
-def cache_on_the_fly(function: Callable) -> Callable:
+def cache_on_the_fly(function: Callable, verbose: bool = False) -> Callable:
     """
     Caches the result of function in dictionary.
 
     :param function: function doing expensive operation
+    :param verbose: print whether cached
     :return: cached or first-time computed result of function
     """
     cached_result = {}
@@ -134,7 +138,7 @@ def cache_on_the_fly(function: Callable) -> Callable:
         name = _create_name(function, args, kwargs)
         if name not in cached_result:
             cached_result[name] = function(*args, **kwargs)
-        else:
+        elif verbose:
             print(f"-- Loading from cache")            
         return cached_result[name]
     return load_or_run

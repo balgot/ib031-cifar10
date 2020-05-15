@@ -1,4 +1,4 @@
-TARGETS := test_nb.ipynb first_presentation_nb.ipynb
+TARGETS := test_nb.ipynb first_presentation_nb.ipynb CIFAR10_final.ipynb
 
 all: $(TARGETS)
 
