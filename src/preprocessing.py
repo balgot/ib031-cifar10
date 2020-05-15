@@ -4,6 +4,7 @@ from skimage.color import rgb2gray, rgb2hsv
 from skimage.feature import hog
 from skimage import filters
 import matplotlib.pyplot as plt
+from cache import cache
 
 
 def batch_to_rgb(images: np.ndarray) -> np.ndarray:
@@ -42,7 +43,7 @@ def rgb_to_hsv(images: np.ndarray) -> np.ndarray:
     Time: 0.0s on whole set
     """
     if len(images.shape) == 4:
-        return np.array(map(rgb2hsv, images))
+        return np.array(list(map(rgb2hsv, images)))
     return rgb2hsv(images)
 
 
@@ -61,6 +62,103 @@ def brightness_norm(images: np.ndarray) -> np.ndarray:
     return np.divide(images, maxes_stack,
                      out=np.zeros_like(images, dtype='float32'),
                      where=maxes_stack != 0)
+
+
+def rgb_scale(train_x, test_x):
+    """
+    Converts to rgb, scales to 0-1
+
+    :param train_x: train data
+    :param test_x: test data
+    :return: train_X, test_X
+    """
+    train_x = batch_to_rgb(train_x)
+    test_x = batch_to_rgb(test_x)
+    train_x = train_x / 255.0
+    test_x = test_x / 255.0
+    return train_x, test_x
+
+
+@cache
+def hog_preprocessing(train_x, train_y, test_x, test_y):
+    """
+    Preprocesses data to HOGS, computes PCA
+
+    :param train_x: train_data
+    :param train_y: train_labels
+    :param test_x: test_data
+    :param test_y: test_labels
+    :return: train_X, train_y, test_X, test_y, PCA
+    """
+    from joblib import Parallel, delayed
+    from skimage.feature import hog
+    from sklearn.decomposition import PCA
+
+    train_x, test_x = rgb_scale(train_x, test_x)
+
+    def h(pic):
+        return hog(
+            pic,
+            orientations=8,
+            pixels_per_cell=(2, 2),
+            cells_per_block=(2, 2),
+            visualize=False,
+            multichannel=True
+        )
+
+    train_x = np.asarray(
+        Parallel(n_jobs=-3, verbose=4, batch_size=1000)(delayed(h)(x) for x in train_x)
+    )
+    test_x = np.asarray(
+        Parallel(n_jobs=-3, verbose=4, batch_size=500)(delayed(h)(x) for x in test_x)
+    )
+
+    pca = PCA(
+        n_components=0.95,  # keep at least 95% of variance
+        svd_solver='full',  # given by previous
+        copy=True,  # apply the same transform to test set as well
+    ).fit(train_x)
+
+    train_x = pca.transform(train_x)
+    test_x = pca.transform(test_x)
+    return train_x, train_y, test_x, test_y, pca
+
+
+@cache
+def hsv_preprocessing(train_x, train_y, test_x, test_y):
+    """
+    Converts to rgv, hsv, keeps h, runs pca
+
+    :param train_x: train_data
+    :param train_y: train_labels
+    :param test_x: test_data
+    :param test_y: test_labels
+    :return: train_X, train_y, test_X, test_y, PCA
+    """
+    from skimage.color import rgb2hsv
+    from sklearn.decomposition import PCA
+
+    train_x, test_x = rgb_scale(train_x, test_x)
+    train_x = rgb_to_hsv(train_x)[:, :, :, 0]
+    test_x = rgb_to_hsv(test_x)[:, :, :, 0]
+
+    # flatten
+    train_x = train_x.reshape((train_x.shape[0], -1))
+    test_x = test_x.reshape((test_x.shape[0], -1))
+
+    mean_image = np.mean(train_x, axis=0)
+    train_x -= mean_image
+    test_x -= mean_image
+
+    pca = PCA(
+        n_components=0.95,  # keep at least 95% of variance
+        svd_solver='full',  # given by previous
+        copy=True,  # apply the same transform to test set as well
+    ).fit(train_x)
+
+    train_x = pca.transform(train_x)
+    test_data = pca.transform(test_x)
+    return train_x, train_y, test_x, test_y, pca
 
 
 def demo(X: np.ndarray, ax: np.ndarray) -> None:
