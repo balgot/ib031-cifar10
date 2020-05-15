@@ -77,7 +77,7 @@ def plot_random(imgs: np.ndarray, labels: np.ndarray,
     imgs_count = min(nrows * ncols, imgs.shape[0])
 
     fig, axs = plt.subplots(nrows, ncols, **kwargs)
-    axs_flat = axs.reshape(-1)
+    axs_flat = np.reshape(axs, -1)
     random = np.random.choice(imgs.shape[0], imgs_count, replace=False)
     one_label = (len(labels) == 1)
 
@@ -98,7 +98,7 @@ def plot_images(imgs: np.ndarray) -> None:
     
     fig, axs = plt.subplots(height, width)
     counter = 0
-    for ax in axs.reshape(-1):
+    for ax in np.reshape(axs, -1):
         plot_raw_img(imgs[counter], label=None, ax=ax)
         counter += 1
 
