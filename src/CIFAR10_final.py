@@ -37,32 +37,26 @@ for i in range(0, 10):
     print(f"{i}\t{utils.get_label_name(i)}")
 
 
-## #### Classes distribution over train set
+## #### Classes distribution over train set and test set
 
 import pandas as pd
 import seaborn as sns
 
-train_distribution = [0 for i in range(10)]
-for cat in range(0, 10):
-    train_distribution[cat] = len(train_data[train_labels == cat])
+def plot_category_dist(labels):
+    bins = [np.count_nonzero(labels == cat) for cat in range(10)]
+    names = [utils.get_label_name(i) for i in range(10)]
 
-frame = pd.DataFrame(data={
-    "Category": [utils.get_label_name(i) for i in range(10)],
-    "Pictures": train_distribution
-})
-sns.barplot(x="Category", y="Pictures", data=frame);
+    frame = pd.DataFrame(data={
+        "Category": names,
+        "Pictures": bins
+    })
+    return sns.barplot(x="Category", y="Pictures", data=frame);
 
-## and test set
-
-test_distribution = [0 for i in range(10)]
-for cat in range(0, 10):
-    test_distribution[cat] = len(test_data[test_labels == cat])
-
-frame = pd.DataFrame(data={
-    "Category": [utils.get_label_name(i) for i in range(10)],
-    "Pictures": test_distribution
-})
-sns.barplot(x="Category", y="Pictures", data=frame);
+plt.subplot(2, 1, 1)
+plot_category_dist(train_labels).set_title("Train images")
+plt.subplot(2, 1, 2)
+plot_category_dist(test_labels).set_title("Test images")
+plt.tight_layout()
 
 ## From which we conclude, that all categories are equally present, so there is no need to weight the categories, or add/remove samples.
 
