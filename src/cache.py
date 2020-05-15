@@ -14,16 +14,13 @@ def _hash(obj: Any) -> str:
     :param obj: object to be hashed
     :return: hash in hex representation
     """
-    try:
-        from collections.abc import Hashable
-    except ImportError:
-        from collections import Hashable
+    from hashlib import md5
 
     if isinstance(obj, int):
         return str(obj)
-    if isinstance(obj, Hashable):
-        return hex(hash(obj))
-    return hex(hash(str(obj))) + "S"
+    m = md5()
+    m.update(str(obj).encode('utf-8'))
+    return m.hexdigest() + "S"
 
 
 def _create_name(func: Callable, args: Tuple, kwargs: Dict) -> str:
@@ -80,7 +77,7 @@ def clear_cache() -> None:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-def cache(function: Callable, verbose: bool = False) -> Callable:
+def cache(function: Callable, verbose: bool = True) -> Callable:
     """
     cache() serves as a decorator for function which takes
     long time to compute and is likely to be used multiple times.
