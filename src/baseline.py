@@ -57,7 +57,7 @@ def bayes_classifier(train_x, train_y, valid_x, valid_y, grid=False):
     :return: GaussianNB model fitted, predictions and accuracy
     """
     gauss = GaussianNB()
-    gauss.fit(train_x, train_x)
+    gauss.fit(train_x, train_y)
     predictions = gauss.predict(valid_x)
     accuracy = accuracy_score(valid_y, predictions)
     return gauss, predictions, accuracy
