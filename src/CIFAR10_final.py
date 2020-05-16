@@ -183,56 +183,19 @@ test_data = test_data / 255.0
 
 ##Now, each image has 32 * 32 * 3 = 3072 features. However from correlation matrix we saw, that there are many correlated features, so we will transform data even more. We will transform rgb to hsv, as we saw from histograms, that that might be most differentaiting, and remove saturation and value channels. Futhermore, we centralise the data and using PCA, we reduce dimensionality even further.
 
-from skimage.color import rgb2hsv
+from skimage.color import rgb2gray
+from skimage.feature import hog
 
-pic = train_data[1545]  # to display origin picture
-train_data = rgb2hsv(train_data)[:, :, :, 0]
-test_data = rgb2hsv(test_data)[:, :, :, 0]
-train_data.shape
+train_data = rgb2gray(train_data)
+test_data = rgb2gray(test_data)
 
-##D & C
-
-fig, ax = plt.subplots(1, 2, figsize=(8, 8))
-ax[0].imshow(pic)
-ax[0].set_title("Original")
-
-ax[1].imshow(train_data[1545], cmap='hsv')
-ax[1].set_title("Hue");
-
-##Now we flatten the data, subtract mean and using PCA we will find the features to preserve 95% of variance.
-
-train_data = train_data.reshape((train_data.shape[0], -1))
-test_data = test_data.reshape((test_data.shape[0], -1))
-
-train_data.shape, test_data.shape
-
-## DC
-
-mean_image = np.mean(train_data, axis=0)
-train_data -= mean_image
-test_data -= mean_image
-
-train_data
-
-## RaP
-
-from sklearn.decomposition import PCA
+train_data = np.array(list(map(
+    lambda img: hog(img, cells_per_block=(2, 2)), train_data)))
+test_data = np.array(list(map(
+    lambda img: hog(img, cells_per_block=(2, 2)), test_data)))
 
 
-pca = PCA(
-    n_components=0.95,  # keep at least 95% of variance
-    svd_solver='full',  # given by previous
-    copy=True,          # apply the same transform to test set as well
-).fit(train_data)
-
-
-train_data = pca.transform(train_data)
-test_data = pca.transform(test_data)
-
-
-train_data.shape, test_data.shape
-
-##So we were able to drop half of features to preserve 95% of variance. Finally, we split train_data to train and validation set.
+##Finally, we split train_data to train and validation set.
 
 from sklearn.model_selection import train_test_split
 
