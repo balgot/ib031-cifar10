@@ -374,7 +374,138 @@ print("Accuracy score\t", accuracy_score(test_labels, cheat))
 plot_confusion_matrix(dtree, test_data, test_labels)
 
 
-##Definning and descibing the model, tuning hyperparameters....
+#### K nearest neighbours
+## We've tried various preprocessing methods, after that the same grid-search for tuning KNN's hyperparameters.
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+
+def grid_search(train_X, train_y):
+    param_grid = {
+        'n_neighbors': [3, 5, 7, 10, 12],
+        'weights': ['uniform', 'distance'],
+        'p': [1, 2, 3]
+    }
+
+    gscv = GridSearchCV(
+        KNeighborsClassifier(),
+        param_grid,
+        scoring='accuracy',
+        n_jobs=-1,
+        cv=5,
+        verbose=20
+    )
+
+    gscv.fit(train_X, train_y)
+
+    return (gscv.cv_results_, gscv.best_estimator_, gscv.best_score_)
+
+##This was done only on a subsample of size 10%, as it would take too long to use whole dataset and we hope that subsampling in stratified fashion does not lead to misleading hyperparameters.
+
+from sklearn.utils import resample
+
+all_images, all_labels = utils.read_dataset()
+
+all_images, all_labels = resample(all_images, all_labels,
+        replace=False, n_samples=5000, random_state=42,
+        stratify=all_labels)
+
+sample_X, sample_y = resample(all_images, all_labels,
+        replace=False, n_samples=all_images.shape[0] // 10, random_state=42,
+        stratify=all_labels)
+
+##### Now list of preprocessing methods:
+
+## Transform data to image RGB format of shape (32, 32, 3) and scale to [0, 1]. Now, each image has 32 * 32 * 3 = 3072 features. However from correlation matrix we saw, that there are many correlated features, so we will transform data even more. We will transform rgb to hsv, as we saw from histograms, that that might be most differentaiting, and remove saturation and value channels. Futhermore, we centralise the data and using PCA, we reduce dimensionality even further.
+
+from skimage.color import rgb2hsv
+from sklearn.decomposition import PCA
+from preprocessing import batch_to_rgb
+
+hue_pca_prep_pca = PCA(
+    n_components=0.95,  # keep at least 95% of variance
+    svd_solver='full',  # given by previous
+    copy=True,          # apply the same transform to test set as well
+)
+def hue_pca_prep(sample_X, fit=False):
+    global hue_pca_prep_pca
+    hue_X = rgb2hsv(batch_to_rgb(sample_X) / 255.)[:, :, :, 0]
+    hue_X = hue_X.reshape((sample_X.shape[0], -1))
+    centered_X = hue_X - np.mean(hue_X, axis=0)
+    if fit:
+        hue_pca_prep_pca = hue_pca_prep_pca.fit(centered_X)
+    return hue_pca_prep_pca.transform(centered_X)
+
+## Use hog descriptors after transforming to grayscale image
+
+from skimage.color import rgb2gray
+from skimage.feature import hog
+
+def gray_hog_prep(sample_X):
+    gray_X = rgb2gray(batch_to_rgb(sample_X))
+    hog_X = np.array(list(map(lambda img:
+        hog(img, orientations=9,
+            pixels_per_cell=(8, 8),
+            cells_per_block=(2, 2)),
+        gray_X)))
+    return hog_X
+
+## And hog descriptors directly from RGB
+
+def rgb_hog_prep(sample_X):
+    rgb_X = batch_to_rgb(sample_X)
+    hog_X = np.array(list(map(lambda img:
+        hog(img, orientations=9,
+            pixels_per_cell=(8, 8),
+            cells_per_block=(2, 2),
+            multichannel=True),
+        rgb_X)))
+    return hog_X
+##
+
+prep_funcs = {
+    'hue_pca': hue_pca_prep,
+    'gray_hog': gray_hog_prep,
+    'rgb_hog': rgb_hog_prep
+}
+
+##### We are prepared for actually tuning hyperparameters
+
+hue_pca_prep(sample_X, fit=True)
+
+results = dict()
+for name, fun in prep_funcs.items():
+    results[name] = grid_search(fun(sample_X), sample_y) # results, estimator, score
+
+## See how it went
+
+for name, (_, estimator, score) in results.items():
+    print(name, ': score = ', score)
+    print(estimator)
+
+##### And then trying the chosen models for whole dataset
+## Split dataset to training and validation sets
+
+from sklearn.model_selection import train_test_split
+
+train_X, valid_X, train_y, valid_y = train_test_split(
+    all_images, all_labels, test_size=1000, random_state=42
+)
+
+## And show accuracy score for each trained model
+
+from sklearn.metrics import accuracy_score
+
+hue_pca_prep(train_X, fit=True)
+
+for name, (_, estimator, _) in results.items():
+    fun = prep_funcs[name]
+    estimator.fit(fun(train_X), train_y)
+    print(name)
+    print(accuracy_score(valid_y, estimator.predict(fun(valid_X))))
+
+
+
 
 #### Results
 

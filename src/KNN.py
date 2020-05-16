@@ -3,6 +3,7 @@ from sklearn.model_selection import\
     GridSearchCV, cross_val_score, train_test_split
 from sklearn.utils import resample
 from sklearn.decomposition import PCA
+from sklearn.utils import resample
 
 from skimage.color import rgb2gray, rgb2hsv
 from skimage.feature import hog
@@ -29,6 +30,18 @@ def gray_hog_prep(sample_X):
 
 gray_hog_model = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=None, n_neighbors=10, p=1, weights='distance')
 
+@cache
+def rgb_hog_prep(sample_X):
+    rgb_X = batch_to_rgb(sample_X)
+    hog_X = np.array(list(map(lambda img:
+        hog(img, cells_per_block=(2, 2), multichannel=True), rgb_X)))
+    return hog_X
+#KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+#                     metric_params=None, n_jobs=None, n_neighbors=12, p=1,
+#                     weights='distance')
+#0.4984
+
+rgb_hog_model = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=None, n_neighbors=12, p=1, weights='distance')
 
 @cache
 def hue_pca_prep(sample_X):
@@ -74,9 +87,17 @@ def train_model(model, images, labels):
         all_X = gray_hog_prep(images)
         return cross_val_score(gray_hog_model, all_X, labels,
                 scoring='accuracy', cv=5, n_jobs=-1, verbose=20)
+        # [0.5383 0.5407 0.5491 0.544  0.5406]
+        # 0.54254
     elif model == 'hue_pca':
         all_X = hue_pca_prep(images)
         return cross_val_score(hue_pca_model, all_X, labels,
+                scoring='accuracy', cv=5, n_jobs=-1, verbose=20)
+        # [0.2919 0.295  0.2948 0.2894 0.2955]
+        # 0.29332
+    elif model == 'rgb_hog':
+        all_X = rgb_hog_prep(images)
+        return cross_val_score(rgb_hog_model, all_X, labels,
                 scoring='accuracy', cv=5, n_jobs=-1, verbose=20)
     else:
         print("no such model")
@@ -100,7 +121,7 @@ if __name__ == '__main__':
 
         print("preprocess")
 
-        train_X = gray_hog_prep(sample_X)
+        train_X = rgb_hog_prep(sample_X)
 
         print("grid search")
 
@@ -114,6 +135,6 @@ if __name__ == '__main__':
     else:
         print("training")
 
-        scores = train_model('gray_hog', all_images, all_labels)
+        scores = train_model('rgb_pca', all_images, all_labels)
         print(scores)
         print(np.mean(scores))
