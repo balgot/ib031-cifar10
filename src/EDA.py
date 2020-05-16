@@ -1,3 +1,5 @@
+from scipy.cluster.hierarchy import dendrogram
+from sklearn.cluster import AgglomerativeClustering
 from matplotlib import pyplot as plt
 import numpy as np
 import utils
@@ -8,7 +10,7 @@ from typing import Dict
 
 
 def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
-                  with_hsv: bool = False) -> None:
+                  with_hsv: bool = False) -> np.array:
     """
     Plot average image and optionally also histogram of RGB values for each
     category.
@@ -16,6 +18,7 @@ def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
     :param batch: dictionary with images and labels
     :param with_histogram: whether to plot also histograms
     :param with_hsv: transform avg image to hsv and plot histogram
+    :return: np.array of average images (in raw ravel form)
     """
     import matplotlib.colors as colors
     d = 0
@@ -29,10 +32,12 @@ def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
     nrows = 2 * (1 + d)
     fig, axs = plt.subplots(nrows, 5, figsize=(15, 10))
     hist_kws = {'range': (50, 200)}
+    avg_imgs = []
     
     for i in range(10):
         imgs = utils.imgs_of_cat(batch, i)
         avg_img = np.mean(imgs, axis=0)
+        avg_imgs.append(avg_img)
         x, y = i % 5, i // 5
         y *= (1 + d)
     
@@ -51,6 +56,7 @@ def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
                          label='value', ax=axs[y][x])
             y += 1
             axs[y][x].imshow(im)
+    return np.array(avg_imgs)
 
 
 def plot_global_hist(batch: Dict, sample_size: int = 50) -> None:
@@ -73,6 +79,30 @@ def plot_global_hist(batch: Dict, sample_size: int = 50) -> None:
         graphs.plot_rgb_hist(imgs, axs[y][x])
 
 
+def plot_dendrogram(model, **kwargs) -> None:
+    """Create linkage matrix and then plot the dendrogram
+    See https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html
+    :param model: Agglomerative clustering learned model
+    :param **kwargs: Passed to scipy dendrogram ploting function
+    """
+    counts = np.zeros(model.children_.shape[0])
+    n_samples = len(model.labels_)
+    for i, merge in enumerate(model.children_):
+        current_count = 0
+        for child_idx in merge:
+            if child_idx < n_samples:
+                current_count += 1  # leaf node
+            else:
+                current_count += counts[child_idx - n_samples]
+        counts[i] = current_count
+
+    linkage_matrix = np.column_stack([model.children_, model.distances_,
+                                      counts]).astype(float)
+
+    dendrogram(linkage_matrix, **kwargs)
+
+
+
 if __name__ == '__main__':
     batch = utils.load_data_batch(1)
 
@@ -84,8 +114,20 @@ if __name__ == '__main__':
         print()
 
     # Find average image and plot histogram of RGB values for each category.
-    plot_avg_imgs(batch)
+    avg_imgs = plot_avg_imgs(batch)
     plt.tight_layout()
+    plt.show()
+
+    # plot dendrogram
+    model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+
+    model = model.fit(avg_imgs)
+
+    plt.figure(figsize=(10, 5))
+    plt.title('Hierarchical Clustering Dendrogram')
+    plot_dendrogram(model, truncate_mode=None,
+            labels=[utils.get_label_name(i) for i in range(10)])
+    plt.xlabel("Category")
     plt.show()
 
     # Lets look at global histogram of each category. Use default size 50.
