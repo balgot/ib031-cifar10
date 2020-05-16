@@ -406,9 +406,10 @@ from sklearn.utils import resample
 
 all_images, all_labels = utils.read_dataset()
 
-all_images, all_labels = resample(all_images, all_labels,
-        replace=False, n_samples=5000, random_state=42,
-        stratify=all_labels)
+# just to quick test for errors
+#all_images, all_labels = resample(all_images, all_labels,
+#        replace=False, n_samples=5000, random_state=42,
+#        stratify=all_labels)
 
 sample_X, sample_y = resample(all_images, all_labels,
         replace=False, n_samples=all_images.shape[0] // 10, random_state=42,
@@ -494,17 +495,24 @@ train_X, valid_X, train_y, valid_y = train_test_split(
 
 ## And show accuracy score for each trained model
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 hue_pca_prep(train_X, fit=True)
+label_names = [utils.get_label_name(i) for i in range(10)]
 
+plt.figure(figsize=(15, 4))
+i = 1
 for name, (_, estimator, _) in results.items():
     fun = prep_funcs[name]
     estimator.fit(fun(train_X), train_y)
     print(name)
-    print(accuracy_score(valid_y, estimator.predict(fun(valid_X))))
-
-
+    predicted = estimator.predict(fun(valid_X))
+    print(accuracy_score(valid_y, predicted))
+    C = confusion_matrix(valid_y, predicted)
+    plt.subplot(1, 3, i)
+    sns.heatmap(data=C, annot=True,
+               xticklabels=label_names, yticklabels=label_names)
+    i += 1
 
 
 #### Results
