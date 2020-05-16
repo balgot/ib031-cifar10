@@ -40,6 +40,7 @@ for i in range(0, 10):
 ## #### Classes distribution over train set and test set
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 def plot_category_dist(labels):
@@ -52,6 +53,7 @@ def plot_category_dist(labels):
     })
     return sns.barplot(x="Category", y="Pictures", data=frame);
 
+plt.figure(figsize=(10, 5))
 plt.subplot(2, 1, 1)
 plot_category_dist(train_labels).set_title("Train images")
 plt.subplot(2, 1, 2)
@@ -64,7 +66,6 @@ plt.tight_layout()
 
 ## Now, we print 9 random pictures from all pictures, and 4 pictures per each category:
 
-import matplotlib.pyplot as plt
 import graphs
 
 # Prints 3x3 pictures randomly
@@ -95,45 +96,36 @@ batch = {
     b'labels': train_labels
 }
 
-EDA.plot_avg_imgs(batch, with_histogram=True, with_hsv=True)
+avg_imgs = EDA.plot_avg_imgs(batch, with_histogram=True, with_hsv=True)
 plt.tight_layout()
 plt.show()
+
+## From which we can see, that color values, especially G and R channels, are similar for majority of images. We plot also distribution of hsv (red=hue, yellow=saturation, blue=value) values, as rgb is a bit misleading - we don't know which R, G, B values are from the same pixel. But they are joined together in hsv model into _hue_. And so we can see something like a tendency in terms of hue of whole image throughout categories. Let's look closer at those similar categories.
+
+from sklearn.cluster import AgglomerativeClustering
+
+model_ac = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+model_ac = model_ac.fit(avg_imgs)
+
+plt.figure(figsize=(10, 5))
+plt.title('Hierarchical Clustering Dendrogram')
+EDA.plot_dendrogram(model_ac, truncate_mode=None,
+        labels=[utils.get_label_name(i) for i in range(10)])
+plt.xlabel("Category")
+plt.show()
+
+## So we expect worse results in distinguishing cat-dog, airplane-ship, ...
+## Another way we can make histograms is to grab all images, not count an "average image", but rather take into account raw values:
+
 
 EDA.plot_global_hist(batch, sample_size=int(len(train_data) ** 0.25))
 plt.tight_layout()
 
-## From which we can see, that color values, especially G and R channels, are similar for majority of images. Some histograms have large bin corresponding to RGB (255, 255, 255), which means there is probably white background.
-
-## #### Correlation
-
-## Due to large size of data, we plot correlation matrix from random subset of size 100.
-
-import matplotlib.pyplot as plt
-
-
-def transform_to_pd(data: np.ndarray) -> pd.DataFrame:
-    """
-    Returns pd.DataFrame from data, given the first
-    dimension is samples, second attribute values.
-
-    :param data np.ndarray of pictures
-    :return pd.DataFrame with the data
-    """
-    return pd.DataFrame(data=data)
-
-
-sample = np.random.choice(len(train_data), 100, replace=False)
-frame = transform_to_pd(train_data[sample])
-plt.matshow(frame.corr())
-plt.show()
-
-## The matrix appears to be divided to 9 zones, which is caused by 3 color channels in data, R, G, B in this order.
-
-## Values near the main diagonal demostrate the property of real pictures, i.e. pixels are strongly correlated with nearby pixels. Furtheremore, the matrix suggests, that the images are symetric about the vertical, as for each sqaure, the submatrix is symetrix about main diagonal.
+## Some histograms have large bin corresponding to RGB (255, 255, 255), which means there is probably white background - like in a portrait and not photo, because in reality there is almost never such "pure" color - maybe these images can be found as outliers.
 
 ## #### Outliers
 
-## As the dataset doesn't really contain outliers, we plot the pictures from random selection of size 1000, which are the least likely to be in their class:
+## As the dataset doesn't really contain outliers that should be removed, we plot the pictures from random selection of size 1000, which are the least likely to be in their class:
 
 from sklearn.neighbors import LocalOutlierFactor
 
@@ -164,7 +156,32 @@ def detect_outliers(imgs, labels, test_size=1000):
 
 detect_outliers(train_data, train_labels, test_size=1000)
 
-## We have found out that there are also images with "unnatural" backgrouds.
+## And yes, we have found out that there are also images with such "unnatural" backgrouds.
+
+
+## #### Correlation
+
+## Due to large size of data, we plot correlation matrix from random subset of size 100.
+
+def transform_to_pd(data: np.ndarray) -> pd.DataFrame:
+    """
+    Returns pd.DataFrame from data, given the first
+    dimension is samples, second attribute values.
+
+    :param data np.ndarray of pictures
+    :return pd.DataFrame with the data
+    """
+    return pd.DataFrame(data=data)
+
+
+sample = np.random.choice(len(train_data), 100, replace=False)
+frame = transform_to_pd(train_data[sample])
+plt.matshow(frame.corr())
+plt.show()
+
+## The matrix appears to be divided to 9 zones, which is caused by 3 color channels in data, R, G, B in this order.
+
+## Values near the main diagonal demostrate the property of real pictures, i.e. pixels are strongly correlated with nearby pixels. Furtheremore, the matrix suggests, that the images are symetric about the vertical, as for each sqaure, the submatrix is symetrix about main diagonal.
 
 ## ## Data Preprocessing
 
@@ -357,7 +374,146 @@ print("Accuracy score\t", accuracy_score(test_labels, cheat))
 plot_confusion_matrix(dtree, test_data, test_labels)
 
 
-##Definning and descibing the model, tuning hyperparameters....
+#### K nearest neighbours
+## We've tried various preprocessing methods, after that the same grid-search for tuning KNN's hyperparameters.
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+
+def grid_search(train_X, train_y):
+    param_grid = {
+        'n_neighbors': [3, 5, 7, 10, 12],
+        'weights': ['uniform', 'distance'],
+        'p': [1, 2, 3]
+    }
+
+    gscv = GridSearchCV(
+        KNeighborsClassifier(),
+        param_grid,
+        scoring='accuracy',
+        n_jobs=-1,
+        cv=5,
+        verbose=20
+    )
+
+    gscv.fit(train_X, train_y)
+
+    return (gscv.cv_results_, gscv.best_estimator_, gscv.best_score_)
+
+##This was done only on a subsample of size 10%, as it would take too long to use whole dataset and we hope that subsampling in stratified fashion does not lead to misleading hyperparameters.
+
+from sklearn.utils import resample
+
+all_images, all_labels = utils.read_dataset()
+
+# just to quick test for errors
+#all_images, all_labels = resample(all_images, all_labels,
+#        replace=False, n_samples=5000, random_state=42,
+#        stratify=all_labels)
+
+sample_X, sample_y = resample(all_images, all_labels,
+        replace=False, n_samples=all_images.shape[0] // 10, random_state=42,
+        stratify=all_labels)
+
+##### Now list of preprocessing methods:
+
+## Transform data to image RGB format of shape (32, 32, 3) and scale to [0, 1]. Now, each image has 32 * 32 * 3 = 3072 features. However from correlation matrix we saw, that there are many correlated features, so we will transform data even more. We will transform rgb to hsv, as we saw from histograms, that that might be most differentaiting, and remove saturation and value channels. Futhermore, we centralise the data and using PCA, we reduce dimensionality even further.
+
+from skimage.color import rgb2hsv
+from sklearn.decomposition import PCA
+from preprocessing import batch_to_rgb
+
+hue_pca_prep_pca = PCA(
+    n_components=0.95,  # keep at least 95% of variance
+    svd_solver='full',  # given by previous
+    copy=True,          # apply the same transform to test set as well
+)
+def hue_pca_prep(sample_X, fit=False):
+    global hue_pca_prep_pca
+    hue_X = rgb2hsv(batch_to_rgb(sample_X) / 255.)[:, :, :, 0]
+    hue_X = hue_X.reshape((sample_X.shape[0], -1))
+    centered_X = hue_X - np.mean(hue_X, axis=0)
+    if fit:
+        hue_pca_prep_pca = hue_pca_prep_pca.fit(centered_X)
+    return hue_pca_prep_pca.transform(centered_X)
+
+## Use hog descriptors after transforming to grayscale image
+
+from skimage.color import rgb2gray
+from skimage.feature import hog
+
+def gray_hog_prep(sample_X):
+    gray_X = rgb2gray(batch_to_rgb(sample_X))
+    hog_X = np.array(list(map(lambda img:
+        hog(img, orientations=9,
+            pixels_per_cell=(8, 8),
+            cells_per_block=(2, 2)),
+        gray_X)))
+    return hog_X
+
+## And hog descriptors directly from RGB
+
+def rgb_hog_prep(sample_X):
+    rgb_X = batch_to_rgb(sample_X)
+    hog_X = np.array(list(map(lambda img:
+        hog(img, orientations=9,
+            pixels_per_cell=(8, 8),
+            cells_per_block=(2, 2),
+            multichannel=True),
+        rgb_X)))
+    return hog_X
+##
+
+prep_funcs = {
+    'hue_pca': hue_pca_prep,
+    'gray_hog': gray_hog_prep,
+    'rgb_hog': rgb_hog_prep
+}
+
+##### We are prepared for actually tuning hyperparameters
+
+hue_pca_prep(sample_X, fit=True)
+
+results = dict()
+for name, fun in prep_funcs.items():
+    results[name] = grid_search(fun(sample_X), sample_y) # results, estimator, score
+
+## See how it went
+
+for name, (_, estimator, score) in results.items():
+    print(name, ': score = ', score)
+    print(estimator)
+
+##### And then trying the chosen models for whole dataset
+## Split dataset to training and validation sets
+
+from sklearn.model_selection import train_test_split
+
+train_X, valid_X, train_y, valid_y = train_test_split(
+    all_images, all_labels, test_size=1000, random_state=42
+)
+
+## And show accuracy score for each trained model
+
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+hue_pca_prep(train_X, fit=True)
+label_names = [utils.get_label_name(i) for i in range(10)]
+
+plt.figure(figsize=(15, 4))
+i = 1
+for name, (_, estimator, _) in results.items():
+    fun = prep_funcs[name]
+    estimator.fit(fun(train_X), train_y)
+    print(name)
+    predicted = estimator.predict(fun(valid_X))
+    print(accuracy_score(valid_y, predicted))
+    C = confusion_matrix(valid_y, predicted)
+    plt.subplot(1, 3, i)
+    sns.heatmap(data=C, annot=True,
+               xticklabels=label_names, yticklabels=label_names)
+    i += 1
+
 
 #### Results
 
