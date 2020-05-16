@@ -1,7 +1,6 @@
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import\
+    GridSearchCV, cross_val_score, train_test_split
 from sklearn.decomposition import PCA
 
 from skimage.color import rgb2gray, rgb2hsv
@@ -27,6 +26,8 @@ def gray_hog_prep(sample_X):
 #                     weights='distance')
 #0.47400000000000003
 
+gray_hog_model = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=None, n_neighbors=10, p=1, weights='distance')
+
 
 @cache
 def hue_pca_prep(sample_X):
@@ -43,6 +44,8 @@ def hue_pca_prep(sample_X):
 #                     metric_params=None, n_jobs=None, n_neighbors=7, p=3,
 #                     weights='distance')
 #0.2596
+
+hue_pca_model = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=None, n_neighbors=7, p=3, weights='distance')
 
 @cache
 def grid_search(train_X, train_y):
@@ -65,6 +68,19 @@ def grid_search(train_X, train_y):
 
     return (gscv.cv_results_, gscv.best_estimator_, gscv.best_score_)
 
+def train_model(model, images, labels):
+    if model == 'gray_hog':
+        all_X = gray_hog_prep(images)
+        return cross_val_score(gray_hog_model, all_X, labels,
+                scoring='accuracy', cv=5, n_jobs=-1, verbose=20)
+    elif model == 'hue_pca':
+        all_X = hue_pca_prep(images)
+        return cross_val_score(hue_pca_model, all_X, labels,
+                scoring='accuracy', cv=5, n_jobs=-1, verbose=20)
+    else:
+        print("no such model")
+
+
 if __name__ == '__main__':
     sns.set()
 
@@ -72,22 +88,31 @@ if __name__ == '__main__':
 
     all_images, all_labels = utils.read_dataset()
 
-    print("choose subsample (10%) because of huge amount of images")
+    do_grid_search = False
 
-    sample_X, sample_y = resample(all_images, all_labels,
-            replace=False, n_samples=5000, random_state=42,
-            stratify=all_labels)
+    if do_grid_search:
+        print("choose subsample (10%) because of huge amount of images")
 
-    print("preprocess")
+        sample_X, sample_y = resample(all_images, all_labels,
+                replace=False, n_samples=5000, random_state=42,
+                stratify=all_labels)
 
-    train_X = gray_hog_prep(sample_X)
+        print("preprocess")
 
-    print("grid search")
+        train_X = gray_hog_prep(sample_X)
 
-    results, best_estimator, best_score = grid_search(train_X, sample_y)
+        print("grid search")
 
-    print("\nRESULTS:\n")
+        results, best_estimator, best_score = grid_search(train_X, sample_y)
 
-    print(results)
-    print(best_estimator)
-    print(best_score)
+        print("\nRESULTS:\n")
+
+        print(results)
+        print(best_estimator)
+        print(best_score)
+    else:
+        print("training")
+
+        scores = train_model('gray_hog', all_images, all_labels)
+        print(scores)
+        print(np.mean(scores))
