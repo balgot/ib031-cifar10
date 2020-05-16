@@ -1,6 +1,10 @@
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import\
     GridSearchCV, cross_val_score, train_test_split
+from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
+from sklearn.model_selection import GridSearchCV
+>>>>>>> Train KNN after various preprocessings
 from sklearn.decomposition import PCA
 
 from skimage.color import rgb2gray, rgb2hsv
