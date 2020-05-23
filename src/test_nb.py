@@ -1,15 +1,34 @@
-## Our goal is to plot graph of sin(x) on discrete set
-##
-## (Michal Barnisin, Simon Varga)
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.4.2
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
 
-## Lets start with importing neccesarry packages:
+# Our goal is to plot graph of sin(x) on discrete set
+#
+#  (Michal Barnisin, Simon Varga)
+
+# Lets start with importing neccesarry packages:
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-## Now, we create X points 
+# Now, we create X points
+
 xs = np.arange(-10, 11, 0.1)
-## ... and corresponding Y points
+
+# ... and corresponding Y points
+
+# +
 ys = np.ndarray(xs.shape)
 
 for i in range(xs.size):
@@ -20,10 +39,13 @@ for i in range(xs.size):
     print(xs[i], end='')
     print(': ', end='')
     print(ys[i])
-## And now plot the function!
+# -
+
+# And now plot the function!
+
 plt.scatter(xs, ys)
 plt.show()
 
-## That's it :)
+# That's it :)
 
 print('Have a nice day')
