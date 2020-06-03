@@ -1,11 +1,11 @@
-TARGETS := test_nb.ipynb first_presentation_nb.ipynb CIFAR10_final.ipynb
+TARGETS := test_nb.ipynb first_presentation_nb.ipynb CIFAR10.ipynb
 
 all: $(TARGETS)
 
-$(TARGETS): %.ipynb : %.py
-	python3 py2ipynb.py $< $@
+$(TARGETS):
+	jupytext --sync $@
 
 clean:
 	rm -f $(TARGETS)
 
-.PHONY: clean
+.PHONY: all $(TARGETS) clean
