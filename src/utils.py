@@ -1,12 +1,8 @@
-import numpy as np
-from typing import Dict, Any, Tuple
-import cache
-
-
-# Default path to un-tarred image data
-CIFAR_PATH = '../dataset'
-
 """
+This file contains the functions for loading the dataset, and functions
+for simple manipulations with categories. The expected path for the files
+with data is specified below.
+
 Loaded in this way, each of the batch files contains a dictionary with the
 following elements:
 
@@ -19,11 +15,18 @@ following elements:
   indicates the label of the ith image in the array data.
 
 The dataset contains another file, called batches.meta. It too contains
-a Python dictionary object. It has the following entries: 
+a Python dictionary object. It has the following entries:
 * label_names -- a 10-element list which gives meaningful names to the numeric
   labels in the labels array described above. For example,
   label_names[0] == "airplane", label_names[1] == "automobile", etc.
 """
+import numpy as np
+from typing import Dict, Any, Tuple, List
+import cache
+
+
+# Default path to un-tarred image data
+CIFAR_PATH = '../dataset'
 
 
 def unpickle(path: str) -> Dict:
@@ -131,6 +134,18 @@ def get_label_name(label: int) -> str:
     :return: corresponding string label name
     """
     return read_meta()[label].decode('utf-8')
+
+
+def get_all_labels(path: str = CIFAR_PATH) -> List[str]:
+    """
+    Reads the labels, decodes and returns as an array
+    with indices corresponding to the label name stored.
+
+    :param path: path to meta data
+    :return: array of label names
+    """
+    label_names = read_meta(path=path)
+    return list(map(np.bytes_.decode, label_names))
 
 
 def imgs_of_cat(batch: Dict, category: int) -> np.ndarray:
