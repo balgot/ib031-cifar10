@@ -22,6 +22,8 @@ def batch_to_rgb(images: np.ndarray) -> np.ndarray:
     :param images: CIFAR-images in default format
     :return: same images with transformed colors to rgb
     """
+    if len(images.shape) == 1:
+        return images.reshape((3, 32, 32)).transpose(1, 2, 0)
     return images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
 
 
