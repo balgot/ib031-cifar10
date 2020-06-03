@@ -1,6 +1,7 @@
 """
 In this file we demonstrate the functions used for Exploratory
-Data Analysis (EDA) of the CIFAR10 dataset.
+Data Analysis (EDA) of the CIFAR10 dataset. This file has similar
+functions as the <graphs.py>, see that file for additional code.
 """
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering

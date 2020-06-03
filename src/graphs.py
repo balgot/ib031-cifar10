@@ -1,10 +1,12 @@
+"""
+In this file, we define functions for plotting images from
+the dataset using matplotlib.pyplot.
+"""
 from matplotlib import pyplot as plt
 import seaborn as sns
 from utils import get_label_name
 import numpy as np
 from typing import Union
-import scipy
-from scipy import ndimage, misc
 import matplotlib.colors as colors
 
 
