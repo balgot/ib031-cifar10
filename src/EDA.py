@@ -1,3 +1,7 @@
+"""
+In this file we demonstrate the functions used for Exploratory
+Data Analysis (EDA) of the CIFAR10 dataset.
+"""
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering
 from matplotlib import pyplot as plt
@@ -5,8 +9,23 @@ import numpy as np
 import utils
 import graphs
 import seaborn as sns
+import pandas as pd
 from typing import Dict
 
+
+def plot_category_dist(labels, label_names):
+    """
+    Plots the distribution of values in *labels* as sns.barplot()
+    :param labels: labels of the data, i.e. array with integers
+    :param label_names: string representation of labels
+    :return barplot with plotted data
+    """
+    bins = [np.count_nonzero(labels == cat) for cat in range(10)]
+    frame = pd.DataFrame(data={
+        "Category": label_names,
+        "Pictures": bins
+    })
+    return sns.barplot(x="Category", y="Pictures", data=frame)
 
 
 def plot_avg_imgs(batch: Dict, with_histogram: bool = True,
