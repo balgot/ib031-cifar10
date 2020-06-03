@@ -5,6 +5,7 @@ functions as the <graphs.py>, see that file for additional code.
 """
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.neighbors import LocalOutlierFactor
 from matplotlib import pyplot as plt
 import numpy as np
 import utils
@@ -99,11 +100,11 @@ def plot_global_hist(batch: Dict, sample_size: int = 50) -> None:
         graphs.plot_rgb_hist(imgs, axs[y][x])
 
 
-def plot_dendrogram(model, **kwargs) -> None:
+def plot_dendrogram(model: AgglomerativeClustering, **kwargs) -> None:
     """Create linkage matrix and then plot the dendrogram
     See https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html
     :param model: Agglomerative clustering learned model
-    :param **kwargs: Passed to scipy dendrogram ploting function
+    :param **kwargs: Passed to scipy.dendrogram plotting function
     """
     counts = np.zeros(model.children_.shape[0])
     n_samples = len(model.labels_)
@@ -116,11 +117,42 @@ def plot_dendrogram(model, **kwargs) -> None:
                 current_count += counts[child_idx - n_samples]
         counts[i] = current_count
 
-    linkage_matrix = np.column_stack([model.children_, model.distances_,
-                                      counts]).astype(float)
-
+    linkage_matrix = np.column_stack([model.children_, model.distances_, counts]).astype(float)
     dendrogram(linkage_matrix, **kwargs)
 
+
+def detect_outliers(imgs: np.ndarray, labels: np.ndarray, test_size: int) -> None:
+    """
+    Finds the outliers using LOF in imgs.
+
+    :param imgs: unscaled unprocessed images from data files
+    :param labels: corresponding labels [0-9]
+    :param test_size: size of the subset on which the outliers will
+        be found (to speed the process)
+    :return:
+    """
+    np.random.seed(0)
+    sample = np.random.choice(len(imgs), test_size, replace=False)
+    imgs = imgs[sample]
+    labels = labels[sample]
+
+    # Scale data. It is simple, every pixel is in range 0-255.
+    imgs = imgs / 255
+
+    # Find Outliers using LOF
+    LOF = LocalOutlierFactor()
+    outliers = np.where(LOF.fit_predict(imgs) == -1)[0]
+
+    for i in range(len(labels)):
+        cat_images = imgs[outliers][labels[outliers] == i]
+        if len(cat_images) == 0:
+            continue
+        print(labels[i])
+        graphs.plot_images(cat_images)
+        plt.tight_layout()
+        plt.show()
+
+    del sample, labels, imgs, outliers
 
 
 if __name__ == '__main__':
