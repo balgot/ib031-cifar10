@@ -136,5 +136,6 @@ if __name__ == '__main__':
         print("training")
 
         scores = train_model('rgb_pca', all_images, all_labels)
-        print(scores)
-        print(np.mean(scores))
+        if scores:
+            print(scores)
+            print(np.mean(scores))
