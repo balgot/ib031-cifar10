@@ -142,3 +142,5 @@ dataset/
 
 # output notebooks
 src/*.ipynb
+# but preserve the solution
+!src/CIFAR10.ipynb

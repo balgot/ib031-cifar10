@@ -1,3 +1,8 @@
+"""
+In this file, we define and present the functions we
+considered for the pre-processing the dataset, mainly color
+model transforms and edges detection.
+"""
 import numpy as np
 import utils
 from skimage.color import rgb2gray, rgb2hsv
@@ -16,9 +21,9 @@ def batch_to_rgb(images: np.ndarray) -> np.ndarray:
 
     :param images: CIFAR-images in default format
     :return: same images with transformed colors to rgb
-
-    Time: 0.0s on whole set
     """
+    if len(images.shape) == 1:
+        return images.reshape((3, 32, 32)).transpose(1, 2, 0)
     return images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
 
 
@@ -27,8 +32,6 @@ def rgb_to_gray(images: np.ndarray) -> np.ndarray:
     Converts rgb images to gray scale.
     :param images: rgb images of shape [.., .., .., 3]
     :return: array with channel dimension removed
-
-    Time: 1.081s on whole set (commented 1.8s)
     """
     # return np.dot(images[...,:3], [0.2125, 0.7154, 0.0721])
     return rgb2gray(images)
@@ -39,8 +42,6 @@ def rgb_to_hsv(images: np.ndarray) -> np.ndarray:
     Converts rgb images to HSV color space.
     :param images: rgb images of shape [?, .., .., 3]
     :return: array of images in HSV, each with shape [?, .., .., 3]
-
-    Time: 0.0s on whole set
     """
     if len(images.shape) == 4:
         return np.array(list(map(rgb2hsv, images)))
@@ -54,8 +55,6 @@ def brightness_norm(images: np.ndarray) -> np.ndarray:
 
     :param images: Usually rgb image/s of shape [?...?, 3]
     :return: normalized image/s of the same shape
-
-    Time: 3.7s on whole set
     """
     maxes = images.max(axis=-1, initial=0)
     maxes_stack = np.stack((maxes, maxes, maxes), axis=-1)
@@ -82,7 +81,7 @@ def rgb_scale(train_x, test_x):
 @cache
 def hog_preprocessing(train_x, train_y, test_x, test_y):
     """
-    Preprocesses data to HOGS, computes PCA
+    Pre-processes data to HOGS, computes PCA
 
     :param train_x: train_data
     :param train_y: train_labels
